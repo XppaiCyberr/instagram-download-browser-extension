@@ -1,5 +1,5 @@
 import { CLASS_CUSTOM_BUTTON } from '../constants';
-import { handleVideoCoverDownloadBtn } from './button';
+import { handleVideoCoverDownloadBtn, removeFloatingProfileZipBtn } from './button';
 import { initStorageCache, storageCache } from './utils/storage';
 import type { PageHandler } from './handlers';
 import { registeredHandlers } from './handlers';
@@ -31,6 +31,13 @@ async function init() {
 function processPage() {
     const url = new URL(window.location.href);
     const pathnameList = url.pathname.split('/').filter((e) => e);
+    const isInstagramProfilePage =
+        url.origin === 'https://www.instagram.com' &&
+        (pathnameList.length === 1 || (pathnameList.length === 2 && ['tagged', 'reels'].includes(pathnameList[1])));
+
+    if (!isInstagramProfilePage) {
+        removeFloatingProfileZipBtn();
+    }
 
     const cs = document.documentElement.style.colorScheme || getComputedStyle(document.documentElement).colorScheme;
     const isDark = cs === 'dark' || window.matchMedia('(prefers-color-scheme: dark)').matches;

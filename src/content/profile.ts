@@ -1,6 +1,11 @@
 import { downloadResource, openInNewTab } from './utils/fn';
+import { getLoadedProfileMediaCount, handleProfileZipDownload } from './utils/profile-zip';
 
 export async function profileOnClicked(target: HTMLAnchorElement) {
+    if (target.className.includes('zip-btn')) {
+        return handleProfileZipDownload(target);
+    }
+
     const { user_profile_pic_url } = await chrome.storage.local.get(['user_profile_pic_url']);
     const data = new Map(user_profile_pic_url || []);
     const arr = window.location.pathname.split('/').filter((e) => e);
@@ -21,7 +26,7 @@ export async function profileOnClicked(target: HTMLAnchorElement) {
 
 import type { IconColor } from '../types/global';
 import { CLASS_CUSTOM_BUTTON } from '../constants';
-import { addCustomBtn, addVideoDownloadCoverBtn } from './button';
+import { addFloatingProfileZipBtn, addVideoDownloadCoverBtn, PROFILE_ZIP_BUTTON_ID } from './button';
 import type { PageHandler } from './handlers';
 import { VIDEO_SVG_PATH } from '../constants';
 import { postOnClicked } from './post';
@@ -32,13 +37,7 @@ export class ProfilePageHandler implements PageHandler {
     }
 
     process(iconColor: IconColor) {
-        const profileHeader = document.querySelector('section>main>div>header>section:nth-child(2)');
-        if (profileHeader && profileHeader.getElementsByClassName(CLASS_CUSTOM_BUTTON).length === 0) {
-            const profileBtn = profileHeader.querySelector('svg circle');
-            if (profileBtn) {
-                addCustomBtn(profileBtn.parentNode?.parentNode?.parentNode, iconColor);
-            }
-        }
+        addFloatingProfileZipBtn(iconColor, getLoadedProfileMediaCount());
 
         const pathnameList = window.location.pathname.split('/').filter(e => e);
         const postsRows = document.querySelector('header')?.parentElement
@@ -58,7 +57,7 @@ export class ProfilePageHandler implements PageHandler {
     }
 
     async onCustomButtonClick(target: HTMLAnchorElement) {
-        if (document.querySelector('section>main>div>header>section:nth-child(2)')?.contains(target)) {
+        if (target.id === PROFILE_ZIP_BUTTON_ID) {
             return profileOnClicked(target);
         }
         return postOnClicked(target);

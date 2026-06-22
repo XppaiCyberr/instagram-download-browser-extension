@@ -27,10 +27,10 @@ async function forceDownload(blob: string, filename: string, extension: string) 
     }, 100);
 }
 
-const mediaInfoCache: Map<string, any> = new Map(); // key: media id, value: info json
+const mediaInfoCache: Map<string, any> = new Map(); // key: media id, value: media info
 const mediaIdCache: Map<string, string> = new Map(); // key: post id, value: media id
 
-const findAppId = () => {
+export const findAppId = () => {
     const appIdPattern = /"X-IG-App-ID":"([\d]+)"/;
     const bodyScripts: NodeListOf<HTMLScriptElement> = document.querySelectorAll('body > script');
     for (let i = 0; i < bodyScripts.length; ++i) {
@@ -39,6 +39,33 @@ const findAppId = () => {
     }
     console.log('Cannot find app id');
     return null;
+};
+
+export const getDataFromMediaId = async (mediaId: string, appId = findAppId()) => {
+    if (!appId) {
+        console.log('Cannot find appid');
+        return null;
+    }
+
+    const url = 'https://i.instagram.com/api/v1/media/' + mediaId + '/info/';
+    const resp = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Accept: '*/*',
+            'X-IG-App-ID': appId,
+        },
+        credentials: 'include',
+        mode: 'cors',
+        referrerPolicy: 'no-referrer',
+    });
+
+    if (resp.status !== 200) {
+        console.log(`Fetch info API failed with status code: ${resp.status}`);
+        return null;
+    }
+
+    const respJson = await resp.json();
+    return respJson.items?.[0] || null;
 };
 
 function findPostId(articleNode: HTMLElement) {
@@ -112,27 +139,11 @@ export const getDataFromAPI = async (articleNode: HTMLElement) => {
             return null;
         }
         if (!mediaInfoCache.has(mediaId)) {
-            const url = 'https://i.instagram.com/api/v1/media/' + mediaId + '/info/';
-            const resp = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    Accept: '*/*',
-                    'X-IG-App-ID': appId,
-                },
-                credentials: 'include',
-                mode: 'cors',
-                referrerPolicy: 'no-referrer',
-            });
-
-            if (resp.status !== 200) {
-                console.log(`Fetch info API failed with status code: ${resp.status}`);
-                return null;
-            }
-            const respJson = await resp.json();
-            mediaInfoCache.set(mediaId, respJson);
+            const mediaInfo = await getDataFromMediaId(mediaId, appId);
+            if (!mediaInfo) return null;
+            mediaInfoCache.set(mediaId, mediaInfo);
         }
-        const infoJson = mediaInfoCache.get(mediaId);
-        return infoJson.items[0];
+        return mediaInfoCache.get(mediaId);
     } catch (e: any) {
         console.log(`Uncaught in getUrlFromInfoApi(): ${e}\n${e.stack}`);
         return null;

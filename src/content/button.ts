@@ -3,6 +3,20 @@ import type { IconClassName, IconColor } from '../types/global';
 import { checkType, downloadResource } from './utils/fn';
 import { storageCache } from './utils/storage';
 
+export const PROFILE_ZIP_BUTTON_ID = 'profile-download-floating-zip';
+const PROFILE_ZIP_COUNTER_ID = 'profile-download-floating-count';
+const PROFILE_ZIP_STATUS_ID = 'profile-download-floating-status';
+
+export interface ProfileZipStatus {
+    title: string;
+    detail?: string;
+    current?: number;
+    total?: number;
+    tone?: 'active' | 'success' | 'error';
+}
+
+let profileZipStatusClearTimer: number | undefined;
+
 const svgDownloadBtn = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="20" width="20"
 viewBox="0 0 477.867 477.867" fill="currentColor" xml:space="preserve">
 <g>
@@ -91,6 +105,187 @@ export function addCustomBtn(node: any, iconColor: IconColor, position: 'before'
             node.appendChild(zipBtn);
         }
     }
+}
+
+export function updateFloatingProfileZipCount(count: number) {
+    const counter = document.getElementById(PROFILE_ZIP_COUNTER_ID);
+    if (!counter) return;
+
+    counter.textContent = count.toString();
+    counter.setAttribute('aria-label', `${count} loaded media links`);
+
+    const button = document.getElementById(PROFILE_ZIP_BUTTON_ID);
+    if (button?.dataset.downloading !== 'true') {
+        button?.setAttribute('title', `Download Profile Media ZIP (${count} loaded)`);
+    }
+}
+
+function createStatusLine(text: string, style: string) {
+    const line = document.createElement('div');
+    line.textContent = text;
+    line.setAttribute('style', style);
+    return line;
+}
+
+function getStatusColor(tone: ProfileZipStatus['tone']) {
+    switch (tone) {
+        case 'success':
+            return '#16a34a';
+        case 'error':
+            return '#dc2626';
+        default:
+            return '#2563eb';
+    }
+}
+
+export function updateFloatingProfileZipStatus(status: ProfileZipStatus) {
+    if (profileZipStatusClearTimer !== undefined) {
+        window.clearTimeout(profileZipStatusClearTimer);
+        profileZipStatusClearTimer = undefined;
+    }
+
+    let panel = document.getElementById(PROFILE_ZIP_STATUS_ID);
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = PROFILE_ZIP_STATUS_ID;
+        panel.setAttribute(
+            'style',
+            [
+                'position:fixed',
+                'top:68px',
+                'right:16px',
+                'z-index:2147483647',
+                'width:290px',
+                'box-sizing:border-box',
+                'padding:12px',
+                'border-radius:8px',
+                'background:rgba(17,24,39,.96)',
+                'color:white',
+                'box-shadow:0 10px 28px rgba(0,0,0,.32)',
+                'border:1px solid rgba(255,255,255,.16)',
+                'font:13px/1.35 Arial,sans-serif',
+                'pointer-events:none',
+            ].join(';')
+        );
+        document.body.appendChild(panel);
+    }
+
+    panel.textContent = '';
+    panel.appendChild(
+        createStatusLine(
+            status.title,
+            'font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
+        )
+    );
+
+    if (status.detail) {
+        panel.appendChild(
+            createStatusLine(
+                status.detail,
+                'color:rgba(255,255,255,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'
+            )
+        );
+    }
+
+    if (status.current !== undefined && status.total !== undefined && status.total > 0) {
+        const progressText = `${status.current}/${status.total}`;
+        panel.appendChild(createStatusLine(progressText, 'margin-top:8px;color:rgba(255,255,255,.72);font-size:12px;'));
+
+        const progressWrap = document.createElement('div');
+        progressWrap.setAttribute(
+            'style',
+            'height:6px;margin-top:5px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden;'
+        );
+
+        const progressFill = document.createElement('div');
+        const width = Math.max(0, Math.min(100, Math.round((status.current / status.total) * 100)));
+        progressFill.setAttribute(
+            'style',
+            `height:100%;width:${width}%;border-radius:999px;background:${getStatusColor(status.tone)};transition:width .2s ease;`
+        );
+        progressWrap.appendChild(progressFill);
+        panel.appendChild(progressWrap);
+    }
+}
+
+export function clearFloatingProfileZipStatus(delayMs = 0) {
+    if (profileZipStatusClearTimer !== undefined) {
+        window.clearTimeout(profileZipStatusClearTimer);
+    }
+
+    profileZipStatusClearTimer = window.setTimeout(() => {
+        document.getElementById(PROFILE_ZIP_STATUS_ID)?.remove();
+        profileZipStatusClearTimer = undefined;
+    }, delayMs);
+}
+
+export function addFloatingProfileZipBtn(iconColor: IconColor, loadedCount = 0) {
+    if (!storageCache.settings.setting_show_zip_download_icon) {
+        removeFloatingProfileZipBtn();
+        return;
+    }
+    if (document.getElementById(PROFILE_ZIP_BUTTON_ID)) {
+        updateFloatingProfileZipCount(loadedCount);
+        return;
+    }
+
+    const zipBtn = createCustomBtn(svgZipBtn, iconColor, 'zip-btn');
+    zipBtn.id = PROFILE_ZIP_BUTTON_ID;
+    zipBtn.setAttribute(
+        'style',
+        [
+            'position:fixed',
+            'top:16px',
+            'right:16px',
+            'z-index:2147483647',
+            'cursor:pointer',
+            'display:inline-flex',
+            'align-items:center',
+            'justify-content:center',
+            'width:44px',
+            'height:44px',
+            'padding:0',
+            'border-radius:999px',
+            'overflow:visible',
+            `color:${iconColor}`,
+            `background:${iconColor === 'white' ? 'rgba(0,0,0,.78)' : 'rgba(255,255,255,.96)'}`,
+            'box-shadow:0 4px 16px rgba(0,0,0,.24)',
+            'border:1px solid rgba(128,128,128,.35)',
+        ].join(';')
+    );
+
+    const counter = document.createElement('span');
+    counter.id = PROFILE_ZIP_COUNTER_ID;
+    counter.setAttribute(
+        'style',
+        [
+            'position:absolute',
+            'top:-6px',
+            'right:-6px',
+            'min-width:22px',
+            'height:20px',
+            'padding:0 5px',
+            'box-sizing:border-box',
+            'display:inline-flex',
+            'align-items:center',
+            'justify-content:center',
+            'border-radius:999px',
+            'background:#e11d48',
+            'color:white',
+            'font:700 12px/1 Arial,sans-serif',
+            'border:2px solid white',
+            'box-shadow:0 2px 8px rgba(0,0,0,.24)',
+            'pointer-events:none',
+        ].join(';')
+    );
+    document.body.appendChild(zipBtn);
+    zipBtn.appendChild(counter);
+    updateFloatingProfileZipCount(loadedCount);
+}
+
+export function removeFloatingProfileZipBtn() {
+    document.getElementById(PROFILE_ZIP_BUTTON_ID)?.remove();
+    clearFloatingProfileZipStatus();
 }
 
 export function addVideoDownloadCoverBtn(node: HTMLDivElement) {

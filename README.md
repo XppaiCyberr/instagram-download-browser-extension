@@ -15,6 +15,13 @@ or [Firefox](https://addons.mozilla.org/addon/ins-downloader/)
 > There are some issues I can't reproduce on my end. It might be because different users are seeing different versions
 > of the webpage, or for some other reason. I can't resolve this on my own for now.
 
+### Features
+
+- Download images and videos from Instagram posts, reels, stories, highlights, profiles, and Threads media.
+- Open detected media in a new tab when direct inspection is preferred.
+- Download carousel posts as ZIP files.
+- Download loaded profile media from the floating ZIP button on Instagram profile pages. The badge shows how many profile media links are loaded, and the progress panel reports loading, current media names, zipping, and browser download status.
+
 ### Screenshot
 
 ![283711](https://github.com/TheKonka/instagram-download-browser-extension/assets/22173084/98b823d7-c873-4290-a230-949e8d6f3b6f)
