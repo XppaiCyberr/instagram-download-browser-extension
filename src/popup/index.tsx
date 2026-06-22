@@ -19,6 +19,7 @@ function App() {
    const [dateTimeFormat, setDateTimeFormat] = useState<string>(DEFAULT_DATETIME_FORMAT);
 
    const isMobile = navigator && navigator.userAgent && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+   const version = chrome.runtime.getManifest().version;
 
    useEffect(() => {
       chrome.storage.sync.get(CONFIG_LIST).then((res) => {
@@ -40,32 +41,40 @@ function App() {
    return (
       <>
          <main className={'container ' + (isMobile ? 'mobile' : '')}>
+            <header className="popup-header">
+               <div>
+                  <p>Media Resources Enhancer</p>
+                  <h1>Downloads</h1>
+               </div>
+               <span>v{version}</span>
+            </header>
+
             <div className="settings">
-               <h2>Icon Settings</h2>
+               <h2>Controls</h2>
                <SettingItem
                   value={newTab}
                   setValue={setNewTab}
-                  label="Show `open in new tab` Icon"
+                  label="Open in new tab"
                   id="setting_show_open_in_new_tab_icon"
                />
                <SettingItem
                   value={enableZipDownload}
                   setValue={setEnableZipDownload}
-                  label="Show `Download ZIP` Icon"
+                  label="ZIP download"
                   id="setting_show_zip_download_icon"
                />
 
-               <h2>Download File Name Settings</h2>
+               <h2>File names</h2>
                <SettingItem
                   value={replaceJpegWithJpg}
                   setValue={setReplaceJpegWithJpg}
-                  label="Replace .jpeg With .jpg"
+                  label="Replace .jpeg with .jpg"
                   id="setting_format_replace_jpeg_with_jpg"
                />
                <SettingItem
                   value={useIndexing}
                   setValue={setUseIndexing}
-                  label="Append the index to carousel media (e.g. 01, 02)"
+                  label="Carousel index"
                   id="setting_format_use_indexing"
                />
 
@@ -81,14 +90,14 @@ function App() {
                   />
                   <span className="highlight"></span>
                   <span className="bar"></span>
-                  <label>Filename Format</label>
+                  <label>Filename format</label>
                </div>
-               <p className="hint">Supported Tags: {'{username}, {id}, {datetime}, {type}'}</p>
+               <p className="hint">Tags: {'{username}, {id}, {datetime}, {type}'}</p>
 
                <SettingItem
                   value={enableDatetimeFormat}
                   setValue={setEnableDatetimeFormat}
-                  label="Enable Datetime Format (will use Unix format if not enabled)"
+                  label="Datetime format"
                   id="setting_enable_datetime_format"
                />
 
@@ -105,26 +114,26 @@ function App() {
                      />
                      <span className="highlight"></span>
                      <span className="bar"></span>
-                     <label>Datetime Format</label>
+                     <label>Datetime format</label>
                   </div>
                )}
 
-               <h2>Video Settings</h2>
+               <h2>Video</h2>
                <SettingItem
                   value={enableVideoControl}
                   setValue={setEnableVideoControl}
-                  label="Show Controls Offered By Browser"
+                  label="Browser controls"
                   id="setting_enable_video_controls"
                />
                <SettingItem
                   value={enableExploreClickthrough}
                   setValue={setEnableExploreClickthrough}
-                  label="Clicking explore videos opens the post"
+                  label="Explore clickthrough"
                   id="setting_enable_explore_video_clickthrough"
                />
 
-               <h2>Threads Settings</h2>
-               <SettingItem value={threads} setValue={setThreads} label="Enable Threads Download" id="setting_enable_threads" />
+               <h2>Threads</h2>
+               <SettingItem value={threads} setValue={setThreads} label="Downloads" id="setting_enable_threads" />
 
                <div className="repo-links" aria-label="Repository links">
                   <span>GitHub</span>
