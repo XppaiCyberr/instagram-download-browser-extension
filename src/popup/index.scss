@@ -34,32 +34,6 @@ button {
       margin: 0.6rem 0;
    }
 
-   >.github-bg {
-      z-index: 10;
-      position: fixed;
-      right: -60px;
-      top: -60px;
-      background: #181717;
-      transform: rotate(45deg);
-      width: 120px;
-      aspect-ratio: 1;
-   }
-
-   >.github {
-      z-index: 100;
-      position: fixed;
-      right: 6px;
-      top: 6px;
-      cursor: pointer;
-      width: 36px;
-      height: 36px;
-      transition: all 0.3s;
-
-      &:hover {
-         transform: scale(1.1);
-         filter: invert(100%);
-      }
-   }
 }
 
 .settings {
@@ -148,6 +122,32 @@ button {
                   background: #909090;
                }
             }
+         }
+      }
+   }
+
+   .repo-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.16);
+      color: #4a4a32;
+      font-size: 13px;
+
+      span {
+         font-weight: 700;
+      }
+
+      a {
+         color: #174ea6;
+         text-decoration: none;
+
+         &:hover,
+         &:focus {
+            text-decoration: underline;
          }
       }
    }
