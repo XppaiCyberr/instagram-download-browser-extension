@@ -1,20 +1,5 @@
 # Instagram Download Browser Extension
 
-Install on [Chrome](https://chrome.google.com/webstore/detail/media-resources-enhancer/oejjpeobjicdpgaijialfpfcbdnanajk)
-or [Firefox](https://addons.mozilla.org/addon/ins-downloader/)
-
-![image](https://github.com/TheKonka/instagram-download-browser-extension/assets/22173084/3ee34a30-5747-4a98-a129-bf030182f1d8)
-![image](https://github.com/TheKonka/instagram-download-browser-extension/assets/22173084/f6988f38-46fc-4c9c-a37e-35a25e71dbe4)
-
-> You must open this setting manually on firefox.
-
-> If you feel slow after a while of installation, try to reinstall the extension.
-
-> If you encounter any issues, please try the latest version first to see if it resolves the problem.
-
-> There are some issues I can't reproduce on my end. It might be because different users are seeing different versions
-> of the webpage, or for some other reason. I can't resolve this on my own for now.
-
 ### Features
 
 - Download images and videos from Instagram posts, reels, stories, highlights, profiles, and Threads media.
@@ -24,8 +9,22 @@ or [Firefox](https://addons.mozilla.org/addon/ins-downloader/)
 
 ### Screenshot
 
-![283711](https://github.com/TheKonka/instagram-download-browser-extension/assets/22173084/98b823d7-c873-4290-a230-949e8d6f3b6f)
-![283710](https://github.com/TheKonka/instagram-download-browser-extension/assets/22173084/ec1d017e-7a39-49fd-bda9-d988b1cd045b)
+#### Popup Menu
+<img width="359" height="601" alt="Screenshot 2026-06-22 172924" src="https://github.com/user-attachments/assets/e1ec52a2-0c6f-4860-801e-185636fa4faf" />
+<img width="357" height="604" alt="Screenshot 2026-06-22 172937" src="https://github.com/user-attachments/assets/e604a680-8b43-49a2-825c-a44415cc65b8" />
+
+#### Download Whole Profile
+<img width="1901" height="951" alt="Screenshot 2026-06-22 173017" src="https://github.com/user-attachments/assets/168d8d56-3659-4634-9227-2cb81e513868" />
+
+#### Status Indicator
+<img width="311" height="171" alt="Screenshot 2026-06-22 173034" src="https://github.com/user-attachments/assets/7b5d77ed-ce2f-48c8-91be-0c8956c2ec17" />
+
+#### Download Per Post
+<img width="1187" height="911" alt="Screenshot 2026-06-22 173057" src="https://github.com/user-attachments/assets/7a8476e3-6ed8-4795-8944-87dc48c5ccc1" />
+
+#### Download ZIP Result
+<img width="330" height="109" alt="Screenshot 2026-06-22 173159" src="https://github.com/user-attachments/assets/8da98b34-fd5b-43f6-a439-ccca53a9ecb6" />
+
 
 ### Core Dependencies
 
@@ -53,14 +52,16 @@ This project uses [pnpm](https://pnpm.io/) and [esbuild](https://esbuild.github.
    pnpm run build:ff
    ```
 
-### Thanks
+### Donate XppaiCyber Fork
+- EVM : 0xE11018C82D4405bDBc7414eC988Fd08351666666
+- ENS : xppaicyber.eth / xppaicyber.base.eth
 
-[Instagram_Download_Button](https://github.com/y252328/Instagram_Download_Button)
+### Sponsor The Konka
+https://qaq.dad/sponsor
 
 ### Licensing
-
 The source code is licensed under MIT. License is available [here](/LICENSE).
 
-### Sponsor
-
-https://qaq.dad/sponsor
+### Thanks
+- [Instagram_Download_Button](https://github.com/y252328/Instagram_Download_Button)
+- [TheKonka Instagram Download Browser Extension](https://github.com/TheKonka/instagram-download-browser-extension)
