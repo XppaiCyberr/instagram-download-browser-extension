@@ -1,4 +1,4 @@
-import { CONFIG_LIST } from '../../constants';
+import { CONFIG_LIST, MediaFilterType } from '../../constants';
 
 export interface StorageSettings {
     setting_show_open_in_new_tab_icon?: boolean;
@@ -11,6 +11,7 @@ export interface StorageSettings {
     setting_enable_datetime_format?: boolean;
     setting_format_filename?: string;
     setting_format_datetime?: string;
+    setting_download_media_filter?: MediaFilterType;
 
     [key: string]: any;
 }

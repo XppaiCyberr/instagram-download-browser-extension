@@ -2,6 +2,7 @@ import {
     CONFIG_LIST,
     DEFAULT_DATETIME_FORMAT,
     DEFAULT_FILENAME_FORMAT,
+    DEFAULT_MEDIA_FILTER,
     MESSAGE_OPEN_URL,
     MESSAGE_ZIP_DOWNLOAD
 } from '../constants';
@@ -14,6 +15,7 @@ browser.runtime.onInstalled.addListener(async () => {
     const defaults: Record<string, any> = {
         setting_format_filename: DEFAULT_FILENAME_FORMAT,
         setting_format_datetime: DEFAULT_DATETIME_FORMAT,
+        setting_download_media_filter: DEFAULT_MEDIA_FILTER,
     };
 
     const updates: Record<string, any> = {};

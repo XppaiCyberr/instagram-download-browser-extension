@@ -1,4 +1,4 @@
-import { MESSAGE_OPEN_URL } from '../../constants';
+import { MediaType, MESSAGE_OPEN_URL } from '../../constants';
 import { DownloadParams, getFilenameFromUrl } from './filename';
 
 import { storageCache } from './storage';
@@ -177,14 +177,31 @@ export const getUrlFromInfoApi = async (articleNode: HTMLElement, mediaIdx = 0):
 };
 
 export async function downloadResource(params: DownloadParams) {
-    const { url } = params
-    console.log(`Downloading ${url}`);
-    const filename = await getFilenameFromUrl(params);
+    const { url } = params;
+    const { setting_download_media_filter = 'all' } = storageCache.settings;
 
-    if (url.startsWith('blob:')) {
+    const isBlobVideo = url.startsWith('blob:');
+    const isKnownVideo = isBlobVideo || url.includes('.mp4') || params.type === MediaType.Reel;
+    const isKnownImage = url.includes('.jpg') || url.includes('.jpeg') || url.includes('.webp') || url.includes('.png');
+
+    if (setting_download_media_filter === 'image' && isKnownVideo) {
+        console.log(`[Media Filter] Skipped video download: ${url}`);
+        return;
+    }
+    if (setting_download_media_filter === 'video' && isKnownImage) {
+        console.log(`[Media Filter] Skipped image download: ${url}`);
+        return;
+    }
+
+    console.log(`Downloading ${url}`);
+
+    if (isBlobVideo) {
+        if (setting_download_media_filter === 'image') return;
+        const filename = await getFilenameFromUrl(params);
         forceDownload(url, filename, 'mp4');
         return;
     }
+
     fetch(url, {
         headers: new Headers({
             Origin: location.origin,
@@ -192,7 +209,18 @@ export async function downloadResource(params: DownloadParams) {
         mode: 'cors',
     })
         .then((response) => response.blob())
-        .then((blob) => {
+        .then(async (blob) => {
+            const isVideoBlob = blob.type.startsWith('video');
+            if (setting_download_media_filter === 'image' && isVideoBlob) {
+                console.log(`[Media Filter] Skipped video blob download: ${url}`);
+                return;
+            }
+            if (setting_download_media_filter === 'video' && !isVideoBlob) {
+                console.log(`[Media Filter] Skipped image blob download: ${url}`);
+                return;
+            }
+
+            const filename = await getFilenameFromUrl(params);
             const extension = blob.type.split('/').pop();
             const blobUrl = window.URL.createObjectURL(blob);
             forceDownload(blobUrl, filename, extension || 'jpg');

@@ -150,11 +150,20 @@ function uniqueFilename(filename: string, usedFilenames: Set<string>) {
     return current;
 }
 
+function isResourceVideo(resource: any): boolean {
+    return Array.isArray(resource?.video_versions) && resource.video_versions.length > 0;
+}
+
 async function getMediaAssets(media: any, fallbackUsername: string, usedFilenames: Set<string>): Promise<ProfileMediaAsset[]> {
+    const { setting_download_media_filter = 'all' } = storageCache.settings;
     const resources = Array.isArray(media.carousel_media) && media.carousel_media.length > 0 ? media.carousel_media : [media];
 
     const assets = await Promise.all(
         resources.map(async (resource: any, index: number) => {
+            const isVideo = isResourceVideo(resource);
+            if (setting_download_media_filter === 'image' && isVideo) return null;
+            if (setting_download_media_filter === 'video' && !isVideo) return null;
+
             const url = getMediaUrl(resource);
             if (!url) return null;
 
@@ -206,9 +215,17 @@ export async function handleProfileZipDownload(target: HTMLAnchorElement) {
     if (target.dataset.downloading === 'true') return;
 
     const username = getProfileUsername();
+    const { setting_download_media_filter = 'all' } = storageCache.settings;
+    const filterLabel =
+        setting_download_media_filter === 'image'
+            ? 'Images Only'
+            : setting_download_media_filter === 'video'
+            ? 'Videos Only'
+            : 'All Media';
+
     if (
         !window.confirm(
-            `Download profile media for @${username}? The page will scroll to load posts, then create a ZIP in this tab.`
+            `Download profile media (${filterLabel}) for @${username}? The page will scroll to load posts, then create a ZIP in this tab.`
         )
     ) {
         return;
@@ -217,10 +234,10 @@ export async function handleProfileZipDownload(target: HTMLAnchorElement) {
     const originalTitle = target.title;
     const originalScrollY = window.scrollY;
     target.dataset.downloading = 'true';
-    target.title = 'Preparing profile ZIP...';
+    target.title = `Preparing profile ZIP (${filterLabel})...`;
     updateFloatingProfileZipStatus({
         title: 'Starting profile ZIP',
-        detail: `Preparing @${username}`,
+        detail: `Preparing @${username} • ${filterLabel}`,
     });
 
     try {

@@ -9,6 +9,7 @@ export const CONFIG_LIST = [
     'setting_enable_datetime_format',
     'setting_format_filename',
     'setting_format_datetime',
+    'setting_download_media_filter',
 ];
 
 export enum MediaType {
@@ -18,6 +19,9 @@ export enum MediaType {
     Highlight = 'HGHT',
     Threads = 'THRD',
 }
+
+export type MediaFilterType = 'all' | 'image' | 'video';
+export const DEFAULT_MEDIA_FILTER: MediaFilterType = 'all';
 
 export const DEFAULT_FILENAME_FORMAT = `{username}-{id}-{datetime}`;
 export const DEFAULT_DATETIME_FORMAT = 'YYYYMMDD_HHmmss';

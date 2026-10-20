@@ -5,18 +5,31 @@ import { getFilenameFromUrl } from "./filename";
 import { MediaType } from "../../constants";
 import { storageCache } from "./storage";
 
+function isVideoResource(resource: any): boolean {
+    return Array.isArray(resource?.video_versions) && resource.video_versions.length > 0;
+}
+
 async function handleZipFirefox(articleNode: HTMLElement) {
     const data = await getDataFromAPI(articleNode);
+    if (!data) return;
+
+    const { setting_download_media_filter = 'all' } = storageCache.settings;
     const blobList = [];
+
     if (data.caption) {
         blobList.push({
             filename: "caption.txt",
             content: data.caption.text,
-        })
+        });
     }
+
     if ('carousel_media' in data) {
         const list = await Promise.all(
             data.carousel_media.map(async (resource: any, index: number) => {
+                const isVideo = isVideoResource(resource);
+                if (setting_download_media_filter === 'image' && isVideo) return null;
+                if (setting_download_media_filter === 'video' && !isVideo) return null;
+
                 const url = getImgOrVideoUrl(resource);
                 const filename = await getFilenameFromUrl({
                     url: url,
@@ -40,8 +53,23 @@ async function handleZipFirefox(articleNode: HTMLElement) {
                 return { filename: `${(index + 1).toString().padStart(2, '0')}-${filename}`, content };
             })
         );
-        blobList.push(...list.filter((e) => e));
+        const filteredList = list.filter((e) => e);
+        if (filteredList.length === 0) {
+            alert(`No media matched your filter ("${setting_download_media_filter === 'image' ? 'Images Only' : 'Videos Only'}").`);
+            return;
+        }
+        blobList.push(...filteredList);
     } else {
+        const isVideo = isVideoResource(data);
+        if (setting_download_media_filter === 'image' && isVideo) {
+            alert('Skipped ZIP download: Post is a video (Filter: Images Only).');
+            return;
+        }
+        if (setting_download_media_filter === 'video' && !isVideo) {
+            alert('Skipped ZIP download: Post is an image (Filter: Videos Only).');
+            return;
+        }
+
         const url = getImgOrVideoUrl(data);
         const response = await fetch(url, {
             headers: new Headers({
@@ -62,6 +90,7 @@ async function handleZipFirefox(articleNode: HTMLElement) {
         const content = await response.blob();
         blobList.push({ filename, content });
     }
+
     chrome.runtime.sendMessage({
         type: MESSAGE_ZIP_DOWNLOAD,
         data: {
@@ -75,21 +104,29 @@ async function handleZipFirefox(articleNode: HTMLElement) {
             }),
         },
     });
-    return;
 }
 
 async function handleZipChrome(articleNode: HTMLElement) {
     const { BlobReader, BlobWriter, TextReader, ZipWriter } = await import("@zip.js/zip.js");
     const data = await getDataFromAPI(articleNode);
+    if (!data) return;
+
+    const { setting_download_media_filter = 'all', setting_format_replace_jpeg_with_jpg } = storageCache.settings;
     const zipFileWriter = new BlobWriter();
     const zipWriter = new ZipWriter(zipFileWriter);
-    const { setting_format_replace_jpeg_with_jpg } = storageCache.settings;
+    let addedCount = 0;
+
     if (data.caption) {
         await zipWriter.add("caption.txt", new TextReader(data.caption.text), { useWebWorkers: false });
     }
+
     if ('carousel_media' in data) {
         for (let i = 0; i < data.carousel_media.length; i++) {
             const resource = data.carousel_media[i];
+            const isVideo = isVideoResource(resource);
+            if (setting_download_media_filter === 'image' && isVideo) continue;
+            if (setting_download_media_filter === 'video' && !isVideo) continue;
+
             const url = getImgOrVideoUrl(resource);
             const response = await fetch(url, {
                 headers: new Headers({
@@ -117,8 +154,25 @@ async function handleZipChrome(articleNode: HTMLElement) {
                 `${(i + 1).toString().padStart(2, '0')}-${filename}.${extension}`,
                 new BlobReader(content), { useWebWorkers: false }
             );
+            addedCount++;
+        }
+
+        if (addedCount === 0) {
+            await zipWriter.close();
+            alert(`No media matched your filter ("${setting_download_media_filter === 'image' ? 'Images Only' : 'Videos Only'}").`);
+            return;
         }
     } else {
+        const isVideo = isVideoResource(data);
+        if (setting_download_media_filter === 'image' && isVideo) {
+            alert('Skipped ZIP download: Post is a video (Filter: Images Only).');
+            return;
+        }
+        if (setting_download_media_filter === 'video' && !isVideo) {
+            alert('Skipped ZIP download: Post is an image (Filter: Videos Only).');
+            return;
+        }
+
         const url = getImgOrVideoUrl(data);
         const response = await fetch(url, {
             headers: new Headers({
@@ -164,11 +218,9 @@ async function handleZipChrome(articleNode: HTMLElement) {
         a.remove();
         URL.revokeObjectURL(blobUrl);
     }, 100);
-
-    return;
 }
 
 export function handleZipDownload(articleNode: HTMLElement) {
     const isFirefox = /Firefox/.test(window.navigator.userAgent);
     return isFirefox ? handleZipFirefox(articleNode) : handleZipChrome(articleNode);
-}
+}

@@ -3,7 +3,13 @@ import { createRoot } from 'react-dom/client';
 import dayjs from 'dayjs';
 import './index.scss';
 
-import { CONFIG_LIST, DEFAULT_DATETIME_FORMAT, DEFAULT_FILENAME_FORMAT } from '../constants';
+import {
+   CONFIG_LIST,
+   DEFAULT_DATETIME_FORMAT,
+   DEFAULT_FILENAME_FORMAT,
+   DEFAULT_MEDIA_FILTER,
+   MediaFilterType,
+} from '../constants';
 import SettingItem from './SettingItem';
 
 const DATETIME_PRESETS = [
@@ -29,6 +35,7 @@ function App() {
    const [useIndexing, setUseIndexing] = useState<boolean>(true);
    const [enableDatetimeFormat, setEnableDatetimeFormat] = useState<boolean>(true);
    const [enableZipDownload, setEnableZipDownload] = useState<boolean>(true);
+   const [mediaFilter, setMediaFilter] = useState<MediaFilterType>(DEFAULT_MEDIA_FILTER);
 
    const [fileNameFormat, setFileNameFormat] = useState<string>(DEFAULT_FILENAME_FORMAT);
    const [dateTimeFormat, setDateTimeFormat] = useState<string>(DEFAULT_DATETIME_FORMAT);
@@ -61,11 +68,18 @@ function App() {
          if (res.setting_format_use_indexing !== undefined) setUseIndexing(!!res.setting_format_use_indexing);
          if (res.setting_enable_datetime_format !== undefined) setEnableDatetimeFormat(!!res.setting_enable_datetime_format);
          if (res.setting_show_zip_download_icon !== undefined) setEnableZipDownload(!!res.setting_show_zip_download_icon);
+         if (res.setting_download_media_filter) setMediaFilter(res.setting_download_media_filter);
 
          if (res.setting_format_filename) setFileNameFormat(res.setting_format_filename);
          if (res.setting_format_datetime) setDateTimeFormat(res.setting_format_datetime);
       });
    }, []);
+
+   const handleFilterChange = (filter: MediaFilterType) => {
+      setMediaFilter(filter);
+      chrome.storage.sync.set({ setting_download_media_filter: filter });
+      triggerSaved();
+   };
 
    const handleResetDefaults = () => {
       const defaults = {
@@ -79,6 +93,7 @@ function App() {
          setting_enable_threads: true,
          setting_format_filename: DEFAULT_FILENAME_FORMAT,
          setting_format_datetime: DEFAULT_DATETIME_FORMAT,
+         setting_download_media_filter: DEFAULT_MEDIA_FILTER,
       };
 
       chrome.storage.sync.set(defaults).then(() => {
@@ -90,6 +105,7 @@ function App() {
          setEnableVideoControl(true);
          setEnableExploreClickthrough(true);
          setThreads(true);
+         setMediaFilter(DEFAULT_MEDIA_FILTER);
          setFileNameFormat(DEFAULT_FILENAME_FORMAT);
          setDateTimeFormat(DEFAULT_DATETIME_FORMAT);
          triggerSaved();
@@ -127,9 +143,9 @@ function App() {
       .replace(/{username}/g, 'instagram')
       .replace(/{datetime}/g, formattedDate)
       .replace(/{id}/g, simulatedId)
-      .replace(/{type}/g, 'POST');
+      .replace(/{type}/g, mediaFilter === 'video' ? 'REEL' : 'POST');
 
-   const previewExtension = replaceJpegWithJpg ? 'jpg' : 'jpeg';
+   const previewExtension = mediaFilter === 'video' ? 'mp4' : replaceJpegWithJpg ? 'jpg' : 'jpeg';
    const livePreviewFilename = `${simulatedName}.${previewExtension}`;
 
    return (
@@ -221,6 +237,64 @@ function App() {
                   </div>
 
                   <div className="card-content">
+                     {/* Media Filter Segmented Control */}
+                     <div className="filter-group">
+                        <div className="filter-header">
+                           <div className="filter-text">
+                              <span className="filter-label">Download Filter</span>
+                              <span className="filter-desc">Filter downloaded media by file type</span>
+                           </div>
+                           <span className="filter-badge">
+                              {mediaFilter === 'all' ? 'All Media' : mediaFilter === 'image' ? 'Images Only' : 'Videos Only'}
+                           </span>
+                        </div>
+                        <div className="filter-segmented-control" role="radiogroup" aria-label="Media Type Filter">
+                           <button
+                              type="button"
+                              className={`segment-btn ${mediaFilter === 'all' ? 'active' : ''}`}
+                              onClick={() => handleFilterChange('all')}
+                              role="radio"
+                              aria-checked={mediaFilter === 'all'}
+                           >
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                 <circle cx="8.5" cy="8.5" r="1.5"/>
+                                 <polyline points="21 15 16 10 5 21"/>
+                              </svg>
+                              <span>All</span>
+                           </button>
+                           <button
+                              type="button"
+                              className={`segment-btn ${mediaFilter === 'image' ? 'active' : ''}`}
+                              onClick={() => handleFilterChange('image')}
+                              role="radio"
+                              aria-checked={mediaFilter === 'image'}
+                           >
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                 <circle cx="9" cy="9" r="2"/>
+                                 <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                              </svg>
+                              <span>Images only</span>
+                           </button>
+                           <button
+                              type="button"
+                              className={`segment-btn ${mediaFilter === 'video' ? 'active' : ''}`}
+                              onClick={() => handleFilterChange('video')}
+                              role="radio"
+                              aria-checked={mediaFilter === 'video'}
+                           >
+                              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                 <polygon points="23 7 16 12 23 17 23 7"/>
+                                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                              </svg>
+                              <span>Videos only</span>
+                           </button>
+                        </div>
+                     </div>
+
+                     <div className="divider" />
+
                      <SettingItem
                         value={newTab}
                         setValue={setNewTab}
@@ -461,6 +535,9 @@ function App() {
                <div className="about-tips">
                   <h4>Quick Tips</h4>
                   <ul>
+                     <li>
+                        <strong>Download Filter:</strong> Filter downloads to save only photos or only videos (great for profile archiving).
+                     </li>
                      <li>
                         <strong>Whole Profile ZIP:</strong> Visit any Instagram profile page to reveal the floating ZIP badge in the top right corner.
                      </li>

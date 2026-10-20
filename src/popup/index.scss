@@ -355,6 +355,96 @@ body {
    }
 }
 
+/* Filter Group & Segmented Control */
+.filter-group {
+   display: flex;
+   flex-direction: column;
+   gap: 8px;
+   padding: 2px 2px 4px;
+
+   .filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .filter-text {
+         display: flex;
+         flex-direction: column;
+         gap: 1px;
+
+         .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+         }
+
+         .filter-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+         }
+      }
+
+      .filter-badge {
+         font-size: 10px;
+         font-weight: 700;
+         padding: 2px 8px;
+         border-radius: 999px;
+         background: var(--chip-bg);
+         color: var(--accent-primary);
+         border: 1px solid var(--chip-border);
+         text-transform: uppercase;
+         letter-spacing: 0.3px;
+      }
+   }
+
+   .filter-segmented-control {
+      display: flex;
+      gap: 4px;
+      padding: 3px;
+      background: var(--chip-bg);
+      border-radius: 8px;
+      border: 1px solid var(--chip-border);
+
+      .segment-btn {
+         flex: 1;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         gap: 5px;
+         padding: 6px 8px;
+         border-radius: 6px;
+         border: 1px solid transparent;
+         background: transparent;
+         color: var(--text-secondary);
+         font-size: 11px;
+         font-weight: 600;
+         cursor: pointer;
+         transition: all 0.15s ease;
+
+         svg {
+            color: var(--text-muted);
+            transition: color 0.15s ease;
+         }
+
+         &:hover {
+            color: var(--text-primary);
+            background: var(--chip-hover);
+         }
+
+         &.active {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border-color: var(--card-border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+            svg {
+               color: var(--accent-primary);
+            }
+         }
+      }
+   }
+}
+
 /* Setting Row Item */
 .setting-item {
    display: flex;
