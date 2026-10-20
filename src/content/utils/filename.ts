@@ -11,6 +11,29 @@ export interface DownloadParams {
     type?: MediaType;
 }
 
+export function parseToDayjs(val: any): Dayjs {
+    if (!val) return dayjs();
+    if (dayjs.isDayjs(val)) return val;
+    if (typeof val === 'number') {
+        return val < 1e11 ? dayjs.unix(val) : dayjs(val);
+    }
+    if (typeof val === 'string') {
+        const num = Number(val);
+        if (!Number.isNaN(num) && /^\d{10}$/.test(val)) {
+            return dayjs.unix(num);
+        }
+    }
+    const parsed = dayjs(val);
+    return parsed.isValid() ? parsed : dayjs();
+}
+
+export function sanitizeFilename(str: string): string {
+    return str
+        .replace(/[/\\?%*:|"<>]/g, '_')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 export function getMediaName(url: string) {
     try {
         const urlObj = new URL(url);
@@ -58,9 +81,10 @@ export const getFilenameFromUrl = async ({ url, username, datetime, id, index, t
     let filename = processedId;
 
     if (username && datetime && id) {
+        const parsedDate = parseToDayjs(datetime);
         const formattedDatetime = setting_enable_datetime_format
-            ? dayjs(datetime).format(setting_format_datetime)
-            : dayjs(datetime).unix().toString();
+            ? parsedDate.format(setting_format_datetime)
+            : parsedDate.unix().toString();
 
         filename = setting_format_filename
             .replace(/{username}/g, username)
@@ -72,6 +96,8 @@ export const getFilenameFromUrl = async ({ url, username, datetime, id, index, t
     if (!filename) {
         filename = getMediaName(url);
     }
+
+    filename = sanitizeFilename(filename) || 'media';
 
     // Global protection: Truncate if total length > 128 to prevent OS errors.
     if (filename.length > MAX_FILENAME_LENGTH) {

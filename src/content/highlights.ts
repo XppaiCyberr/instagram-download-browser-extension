@@ -46,7 +46,7 @@ export async function highlightsOnClicked(target: HTMLAnchorElement, containerNo
                         ?.split('/')
                         .filter((_) => _);
                     if (hrefArr?.length === 1) {
-                        posterName = hrefArr[1];
+                        posterName = hrefArr[0];
                         break;
                     }
                 }

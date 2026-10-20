@@ -51,4 +51,13 @@ const ctx = await esbuild.context({
    ],
 });
 
-ctx.watch();
+const isWatch = argv.includes('--watch');
+
+if (isWatch) {
+   await ctx.watch();
+   console.log(`[${Date()}] Watching for changes [${platform}]...`);
+} else {
+   await ctx.rebuild();
+   await ctx.dispose();
+   console.log(`[${Date()}] Build completed successfully [${platform}].`);
+}

@@ -147,7 +147,10 @@ export class ReelPageHandler implements PageHandler {
                     url: url,
                     username:
                         (new Map(id_to_username_map || []).get(media.user.id) as string) ||
-                        document.querySelector('a')?.getAttribute('href')?.replace(/\//g, ''),
+                        (media.user as any).username ||
+                        target.closest('article, div[role="dialog"]')?.querySelector('header a')?.getAttribute('href')?.replace(/\//g, '') ||
+                        (window.location.pathname.split('/').filter((e) => e)[1] === 'reel' ? window.location.pathname.split('/').filter((e) => e)[0] : '') ||
+                        'reel',
                     datetime: time ? dayjs(time) : undefined,
                     id: getMediaName(url),
                 });

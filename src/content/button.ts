@@ -314,7 +314,7 @@ export function handleVideoCoverDownloadBtn(node: HTMLElement) {
                 .match(/url\((.*)\)/)?.[1];
             if (url) {
                 downloadResource({
-                    url: JSON.parse(url),
+                    url: url.replace(/^['"]|['"]$/g, ''),
                 });
             }
         }
